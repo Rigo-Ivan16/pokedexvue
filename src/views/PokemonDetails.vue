@@ -84,7 +84,7 @@ body {
 .card {
   position: relative;
   width: 300px;
-  height: 535px; /* Ajustado para mostrar toda la información */
+  height: 535px; 
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
@@ -133,7 +133,7 @@ body {
 }
 
 .card .description {
-  height: 300px; /* Ajustado para mostrar toda la información */
+  height: 300px; 
   padding: 20px;
   border-bottom: solid 1px rgba(6, 74, 76, .18);
   text-align: center;
