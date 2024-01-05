@@ -11,7 +11,7 @@
             <router-link :to="{ name: 'UserProfile' }">
               <li class="link"><a href="#">Perfil</a></li>
             </router-link>
-            <li class="link"><a href="#">Pokedex</a></li>
+            <li class="link"><a href="#">Pokedex Gen 1</a></li>
           </ul>
         </div>
       </nav>
@@ -23,14 +23,17 @@
 
     <div class="content">
       <div class="search">
+        <!-- Busqueda -->
         <v-form @submit.prevent="searchPokemon">
-          <v-text-field v-model="searchQuery.id" label="ID o Nombre"></v-text-field>
+          <v-text-field v-model="searchQuery.id" label="ID o Nombre" class="search-btn"></v-text-field>
           <v-btn type="submit" color="primary">Buscar</v-btn>
-          <v-btn v-if="show" @click="OriginalPokemonList" color="primary" class="ml-2">Regresar</v-btn>
+          <!-- Boton Regresar -->
+          <v-btn v-if="show" @click="restoreOriginalPokemonList" color="primary" class="back-btn">Regresar</v-btn>
         </v-form>
       </div>
 
       <v-app id="inspire" class="size">
+        <!-- Card Pokémon -->
         <v-card-group class="cards-container">
           <v-card v-for="(data, index) in paginatedPokemons" :key="index" class="mx-auto custom-card" max-width="200" height="300">
             <router-link :to="{ name: 'PokemonDetails', params: { id: data.id } }">
@@ -40,9 +43,9 @@
             </router-link>
           </v-card>
         </v-card-group>
-
+        
+        <!-- Paginas -->
         <v-pagination
-          v-if="isActive && totalPages > 1 && !searching"
           v-model="page"
           :length="totalPages"
           @input="changePage"
@@ -56,6 +59,7 @@
 
 <script>
 import axios from 'axios';
+
 const API_URL = 'https://pokeapi.co/api/v2/pokemon/';
 
 export default {
@@ -63,7 +67,6 @@ export default {
     return {
       show: false,
       isActive: true,
-      searching: false,
       pokemons: [],
       originalPokemons: [],
       itemsPerPage: 20,
@@ -85,10 +88,10 @@ export default {
     },
   },
   created() {
-    this.InitialPokemons();
+    this.loadInitialPokemons();
   },
   methods: {
-    async InitialPokemons() {
+    async loadInitialPokemons() {
       for (let i = 0; i < 151; i++) {
         await this.fetchPokemon(i + 1);
       }
@@ -111,22 +114,17 @@ export default {
       const searchTerm = this.searchQuery.id || this.searchQuery.name.trim().toLowerCase();
       try {
         this.pokemons = [];
-        this.searching = true;
         if (searchTerm !== '') {
           const response = await axios.get(`${API_URL}${searchTerm}`);
           this.handleSearchResponse(response);
         } else {
-          this.OriginalPokemonList();
+          this.restoreOriginalPokemonList();
+          this.show = false;
         }
       } catch (error) {
         console.error(error);
         this.handleSearchError(error);
-      } finally {
-        this.searching = false;
       }
-    },
-    showPagination(isActive) {
-      this.isActive = isActive;
     },
     handleSearchResponse(response) {
       const pokemon = {
@@ -139,23 +137,24 @@ export default {
         this.show = true;
       } else {
         alert('¡Error! La búsqueda está limitada hasta el Pokémon con ID 151.');
-        this.OriginalPokemonList();
+        this.restoreOriginalPokemonList();
       }
     },
     handleSearchError(error) {
       this.show = false;
       if (error.response && error.response.status === 404) {
+        // Pokémon no encontrado
         alert('¡Error! Pokémon no encontrado. Por favor, verifica el nombre o ID ingresado.');
       } else {
+        // Otro tipo de error
         alert('¡Error! Ocurrió un problema al buscar el Pokémon.');
       }
-      this.OriginalPokemonList();
+      this.restoreOriginalPokemonList();
     },
-    OriginalPokemonList() {
+    restoreOriginalPokemonList() {
       this.pokemons = [];
-      this.InitialPokemons().then(() => {
-        this.show = false;
-      });
+      this.loadInitialPokemons();
+      this.show = false;
     },
     changePage(page) {
       this.page = page;
@@ -184,7 +183,6 @@ export default {
   flex-wrap: wrap;
   justify-content: space-between;
 }
-
 .custom-card {
   border-radius: 12px;
   margin-bottom: 20px;
@@ -201,20 +199,18 @@ export default {
   text-decoration: none;
   color: black;
 }
-
 .search {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 30px;
+  margin-right: 10px;
 }
-
 nav {
   background: #021222;
   height: 80px;
   position: relative;
 }
-
 .container2 {
   margin: auto; 
   display: flex;
@@ -223,20 +219,17 @@ nav {
   line-height: 80px;
   z-index: 100;
 }
-
 .container-logo {
   margin-left: 20px;
   z-index: 100;
   cursor: pointer;
 }
-
 .container-logo h2 {
   color: #95bdd8;
   font-weight: 300;
   font-size: 35px;
   letter-spacing: 2px;
 }
-
 .container-logo h2 span {
   color: #0590ec;
   font-weight: 700;
@@ -245,7 +238,6 @@ nav {
 .links .link {
   display: inline-block;
 }
-
 .links .link a {
   text-decoration: none;
   color: #d1faf4;
@@ -254,11 +246,9 @@ nav {
   letter-spacing: 3px;
   transition: .3s;
 }
-
 .links .link a:hover {
   color: #487abb;
 }
-
 @media screen and (max-width: 800px){
   .links {
       position: absolute;
@@ -272,9 +262,6 @@ nav {
       z-index: -1;
       top: -100vh;
       transition: .5s;
-  }
-  .active {
-      top: 80px;
   }
   .links .link:hover {
       background: #051c38;
